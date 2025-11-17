@@ -5,6 +5,7 @@ import type { Replace } from 'src/helpers/replace.helper';
 
 export interface Resource {
   id: UUID;
+  prefix: string;
   name: string;
   companyId: UUID;
   isActive: boolean;
@@ -13,8 +14,16 @@ export interface Resource {
 const resources: Resource[] = [
   {
     name: 'Serviço de exemplo',
+    prefix: 'E',
     companyId: '4ca3058e-9064-46ef-b93f-b7451e555e02',
     id: '2aa2b2e7-7317-4ec5-9922-502b7356bb8b',
+    isActive: true,
+  },
+  {
+    name: 'Outro serviço',
+    prefix: 'O',
+    companyId: '4ca3058e-9064-46ef-b93f-b7451e555e02',
+    id: '2aa2b2e7-7317-4ec5-9922-502b7356bb8a',
     isActive: true,
   },
 ];
@@ -24,7 +33,7 @@ export class ResourcesService {
   constructor(private readonly companiesService: CompaniesService) {}
 
   public async create(
-    dto: Replace<Resource, { id?: UUID; isActive?: boolean }>,
+    dto: Replace<Resource, { id?: UUID; isActive?: boolean; prefix?: string }>,
   ): Promise<Resource> {
     const existingResource = resources.find((e) => e.id === dto.id);
     if (existingResource)
@@ -35,6 +44,7 @@ export class ResourcesService {
     const newResource: Resource = {
       ...dto,
       id: dto.id ?? crypto.randomUUID(),
+      prefix: dto.name[0],
       isActive: dto.isActive ?? true,
     };
 

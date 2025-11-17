@@ -4,21 +4,26 @@ import type { Replace } from 'src/helpers/replace.helper';
 import * as crypto from 'crypto';
 
 export interface User {
-  id: UUID;
+  id: number;
   name: string;
   resourceId: UUID;
   scheduledTime: Date;
   queueId: UUID;
-  isActive: boolean;
+  status?: 'skipped' | 'attended' | 'canceled';
+  tier?: 'priority';
+  updatedAt: Date;
+  createdAt: Date;
 }
 
 export interface Queue {
   id: UUID;
   name: string;
   companyId: UUID;
-  isActive: boolean;
   users: User[];
   currentUserIndex: number | null;
+  isActive: boolean;
+  updatedAt: Date;
+  createdAt: Date;
 }
 
 const queues: Queue[] = [
@@ -28,23 +33,49 @@ const queues: Queue[] = [
     id: 'fd60a4b4-c40d-4c52-9e10-2f7bedbe134d',
     isActive: true,
     users: [
-      {
+      { 
         name: 'John Doe',
-        resourceId: '2aa2b2e7-7317-4ec5-9922-502b7356bb8b',
+        resourceId: '2aa2b2e7-7317-4ec5-9922-502b7356bb8a',
         scheduledTime: new Date('21/10/2025, 10:30:00'),
         queueId: 'fd60a4b4-c40d-4c52-9e10-2f7bedbe134d',
-        id: '44bb0fdf-c95c-4c16-a966-df7d9802a416',
-        isActive: true,
+        id: 1,
+        tier: 'priority',
+        createdAt: new Date('13/10/2025, 11:00:00'),
+        updatedAt: new Date('13/10/2025, 11:00:00'),
       },
       {
-        name: 'Mary Jane',
+        name: 'Lara Croft',
+        resourceId: '2aa2b2e7-7317-4ec5-9922-502b7356bb8b',
+        scheduledTime: new Date('21/10/2025, 10:45:00'),
+        queueId: 'fd60a4b4-c40d-4c52-9e10-2f7bedbe134d',
+        id: 2,
+        createdAt: new Date('21/10/2025, 08:00:00'),
+        updatedAt: new Date('21/10/2025, 09:40:00'),
+      },
+      {
+        name: 'Mike Wazowski',
         resourceId: '2aa2b2e7-7317-4ec5-9922-502b7356bb8b',
         scheduledTime: new Date('21/10/2025, 11:00:00'),
         queueId: 'fd60a4b4-c40d-4c52-9e10-2f7bedbe134d',
-        id: '6de33e6f-99c9-482f-aa1f-48669f68dab8',
-        isActive: true,
+        id: 3,
+        tier: 'priority',
+        createdAt: new Date('20/10/2025, 13:00:00'),
+        updatedAt: new Date('20/10/2025, 13:00:00'),
+      },
+      {
+        name: 'Mary Jane',
+        resourceId: '2aa2b2e7-7317-4ec5-9922-502b7356bb8a',
+        scheduledTime: new Date('21/10/2025, 11:15:00'),
+        queueId: 'fd60a4b4-c40d-4c52-9e10-2f7bedbe134d',
+        id: 4,
+        status: 'canceled',
+        tier: 'priority',
+        createdAt: new Date('20/10/2025, 08:00:00'),
+        updatedAt: new Date('21/10/2025, 10:00:00'),
       },
     ],
+    createdAt: new Date('21/10/2025, 08:00:00'),
+    updatedAt: new Date('21/10/2025, 09:00:00'),
     currentUserIndex: null,
   },
 ];
@@ -59,6 +90,8 @@ export class QueuesService {
         isActive?: boolean;
         users?: User[];
         currentUserIndex?: number | null;
+        updatedAt?: Date;
+        createdAt?: Date;
       }
     >,
   ) {
@@ -78,20 +111,28 @@ export class QueuesService {
       isActive: dto.isActive ?? true,
       users: [],
       currentUserIndex: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     queues.push(newQueue);
     return { ...newQueue };
   }
 
-  public async add(dto: Replace<User, { id?: UUID; isActive?: boolean }>) {
+  public async add(
+    dto: Replace<
+      User,
+      { id?: number; isActive?: boolean; updatedAt?: Date; createdAt?: Date }
+    >,
+  ) {
     const queue = queues.find((e) => e.id === dto.queueId);
     if (!queue) throw new BadRequestException("This queue doesn't exist");
 
     const newUser: User = {
       ...dto,
-      id: (dto.id as UUID) ?? (crypto.randomUUID() as UUID),
-      isActive: dto.isActive ?? true,
+      id: (dto.id as number) ?? queue.users.length + 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     queue.users.push(newUser);
@@ -120,7 +161,7 @@ export class QueuesService {
     } else if (queue.currentUserIndex < queue.users.length - 1) {
       queue.currentUserIndex++;
     } else {
-      queue.currentUserIndex = null;
+      queue.currentUserIndex++;
       return { message: 'Queue finished' };
     }
 
