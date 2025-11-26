@@ -28,11 +28,11 @@ export interface Queue {
 
 const queues: Queue[] = [
   {
-    name: 'Exemplo de serviço',
+    name: 'Nome da Fila',
     companyId: '4ca3058e-9064-46ef-b93f-b7451e555e02',
     id: 'fd60a4b4-c40d-4c52-9e10-2f7bedbe134d',
     isActive: true,
-    users: [
+    users: [ 
       { 
         name: 'John Doe',
         resourceId: '2aa2b2e7-7317-4ec5-9922-502b7356bb8a',
